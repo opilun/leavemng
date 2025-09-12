@@ -1,0 +1,73 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="utf-8">
+    <title>ใบคำขอลา (Leave Request)</title>
+    <style>
+        @font-face {
+            font-family: "THSarabunNew";
+            src: url("file://{{ font_path }}");
+        }
+        body, table, td, th {
+            font-family: "THSarabunNew", "Tahoma", sans-serif;
+            font-size: 18pt;
+        }
+        h1 {
+            text-align: center;
+            font-size: 24pt;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #333;
+            padding: 8px;
+        }
+        .label {
+            width: 30%;
+            background: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+    <h1>ใบคำขอลา (Leave Request)</h1>
+    <table>
+        <tr>
+            <th class="label">ชื่อ</th>
+            <td>{{ leave.name }}</td>
+        </tr>
+        <tr>
+            <th class="label">วันที่ยื่น</th>
+            <td>{{ leave.submit_date|date:"d/m/Y" }}</td>
+        </tr>
+        <tr>
+            <th class="label">วันที่ลา</th>
+            <td>{{ leave.leave_date_from|date:"d/m/Y" }}</td>
+        </tr>
+        <tr>
+            <th class="label">ถึงวันที่</th>
+            <td>{{ leave.leave_date_to|date:"d/m/Y" }}</td>
+        </tr>
+        <tr>
+            <th class="label">จำนวนวันลา</th>
+            <td>{{ leave.leave_days_count }}</td>
+        </tr>
+        <tr>
+            <th class="label">เหตุผลการลา</th>
+            <td>{{ leave.reason }}</td>
+        </tr>
+        <tr>
+            <th class="label">สถานะ</th>
+            <td>{{ leave.status }}</td>
+        </tr>
+    </table>
+    <br><br>
+    <div style="text-align:right;">
+        <span>ลงชื่อ.............................................</span><br>
+        <span>ผู้ขออนุมัติลา</span>
+    </div>
+</body>
+</html>

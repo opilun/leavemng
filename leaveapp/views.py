@@ -1,11 +1,17 @@
 import datetime
+import os
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
+from django.http import HttpResponse
 from django.shortcuts import redirect, render
 
 # Delete leave view
 from django.views.decorators.http import require_POST
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.pdfgen import canvas
 
 from .models import Holiday, Leave_Detail, Profile
 
@@ -26,7 +32,9 @@ def home(request):
         if user.groups.filter(name="leaveAdmin").exists():
             leave_history = Leave_Detail.objects.all().order_by("-submit_date", "-id")
         elif user.groups.filter(name="leaveUser").exists():
-            leave_history = Leave_Detail.objects.filter(name=user.username).order_by("-submit_date", "-id")
+            leave_history = Leave_Detail.objects.filter(name=user.username).order_by(
+                "-submit_date", "-id"
+            )
         else:
             leave_history = Leave_Detail.objects.none()
 
@@ -267,3 +275,51 @@ def edit_leave(request, leave_id):
             "is_leave_admin": is_leave_admin,
         },
     )
+
+
+def export_leave_pdf(request, leave_id):
+    leave = Leave_Detail.objects.get(id=leave_id)
+    response = HttpResponse(content_type="application/pdf")
+    # Format: username_submitdate_leave_id.pdf
+    username = leave.name
+    submitdate = (
+        leave.submit_date.strftime("%Y%m%d")
+        if hasattr(leave.submit_date, "strftime")
+        else str(leave.submit_date)
+    )
+    filename = f"{username}_{submitdate}_{leave_id}.pdf"
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+
+    p = canvas.Canvas(response, pagesize=(595, 842))  # A4 size
+
+    # Register Thai font
+    font_path = os.path.join(settings.BASE_DIR, "static", "fonts", "THSarabunNew.ttf")
+    pdfmetrics.registerFont(TTFont("THSarabunNew", font_path))
+    p.setFont("THSarabunNew", 22)
+
+    y = 800
+    p.drawCentredString(297, y, "ใบคำขอลา (Leave Request)")
+    y -= 50
+    p.setFont("THSarabunNew", 18)
+    p.drawString(80, y, f"ชื่อ: {leave.name}")
+    y -= 30
+    p.drawString(80, y, f"วันที่ยื่น: {leave.submit_date.strftime('%d/%m/%Y')}")
+    y -= 30
+    p.drawString(80, y, f"วันที่ลา: {leave.leave_date_from.strftime('%d/%m/%Y')}")
+    y -= 30
+    p.drawString(80, y, f"ถึงวันที่: {leave.leave_date_to.strftime('%d/%m/%Y')}")
+    y -= 30
+    p.drawString(80, y, f"จำนวนวันลา: {leave.leave_days_count}")
+    y -= 30
+    p.drawString(80, y, f"เหตุผลการลา: {leave.reason}")
+    y -= 30
+    p.drawString(80, y, f"สถานะ: {leave.status}")
+
+    y -= 60
+    p.drawString(350, y, "ลงชื่อ.............................................")
+    y -= 30
+    p.drawString(400, y, "ผู้ขออนุมัติลา")
+
+    p.showPage()
+    p.save()
+    return response

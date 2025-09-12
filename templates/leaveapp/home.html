@@ -87,7 +87,9 @@
                 <td>{{ leave.reason }}</td>
                 <td>{{ leave.status }}</td>
                 <td>
-                    {% if is_leave_admin %}
+                    {% if leave.status == 'อนุมัติ' %}
+                        <a href="{% url 'export_leave_pdf' leave.id %}" class="btn btn-success btn-sm">Export PDF</a>
+                    {% elif is_leave_admin %}
                         <a href="{% url 'edit_leave' leave.id %}" class="btn btn-warning btn-sm">Edit</a>
                         <form method="post" action="{% url 'delete_leave' leave.id %}" style="display:inline;">
                             {% csrf_token %}
