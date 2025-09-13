@@ -3,61 +3,40 @@
 {% block content %}
 <div class="container">
     <div class="row">
-        <h1 class="mt-5">Welcome back {{ user.username }} </h1>
-        <!-- ตารางสิทธิวันลา -->
-        <div class="mb-4">
-            <h5>ลาป่วย</h5>
-            <table class="table table-bordered w-auto">
-                <thead class="table-secondary">
-                    <tr>
-                        <th>ลาป่วยทั้งหมด</th>
-                        <th>ใช้ไป</th>
-                        <th>คงเหลือ</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>{{ profile.sick_leave_total }}</td>
-                        <td>{{ profile.sick_leave_used }}</td>
-                        <td>{{ profile.sick_leave_remaining }}</td>
-                    </tr>
-                </tbody>
-            </table>
-            <h5>ลากิจ</h5>
-            <table class="table table-bordered w-auto">
-                <thead class="table-secondary">
-                    <tr>
-                        <th>ลากิจทั้งหมด</th>
-                        <th>ใช้ไป</th>
-                        <th>คงเหลือ</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>{{ profile.absence_leave_total }}</td>
-                        <td>{{ profile.absence_leave_used }}</td>
-                        <td>{{ profile.absence_leave_remaining }}</td>
-                    </tr>
-                </tbody>
-            </table>
-            <h5>ลาพักร้อน</h5>
-            <table class="table table-bordered w-auto">
-                <thead class="table-secondary">
-                    <tr>
-                        <th>ลาพักร้อนทั้งหมด</th>
-                        <th>ใช้ไป</th>
-                        <th>คงเหลือ</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>{{ profile.vacation_leave_total }}</td>
-                        <td>{{ profile.vacation_leave_used }}</td>
-                        <td>{{ profile.vacation_leave_remaining }}</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+        <h2 class="mt-5">ยินดีต้อนรับ {{ profile.user.first_name }} {{ profile.user.last_name }}</h2>
+<!-- ตารางสิทธิวันลา -->
+    <div class="mb-4">
+        <h5>ประวัติการลา</h5>
+        <table class="table table-bordered w-auto">
+            <thead class="table-secondary">
+                <tr>
+                    <th></th>
+                    <th>ทั้งหมด</th>
+                    <th>ใช้ไป</th>
+                    <th>คงเหลือ</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <th>ลาป่วย</th>
+                    <td>{{ profile.sick_leave_total }}</td>
+                    <td>{{ profile.sick_leave_used }}</td>
+                    <td>{{ profile.sick_leave_remaining }}</td>
+                </tr>
+                <tr>
+                    <th>ลากิจ</th>
+                    <td>{{ profile.absence_leave_total }}</td>
+                    <td>{{ profile.absence_leave_used }}</td>
+                    <td>{{ profile.absence_leave_remaining }}</td>
+                </tr>
+                <tr>
+                    <th>ลาพักร้อน</th>
+                    <td>{{ profile.vacation_leave_total }}</td>
+                    <td>{{ profile.vacation_leave_used }}</td>
+                    <td>{{ profile.vacation_leave_remaining }}</td>
+                </tr>
+            </tbody>
+        </table>
     </div>
 </div>
 <!-- Leave history section -->
@@ -96,17 +75,22 @@
                             <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this leave?');">Delete</button>
                         </form>
                     {% else %}
-                        <a href="{% url 'edit_leave' leave.id %}" class="btn btn-warning btn-sm {% if leave.status == 'อนุมัติ' or leave.status == 'ไม่อนุมัติ' %}disabled{% endif %}">Edit</a>
-                        <form method="post" action="{% url 'delete_leave' leave.id %}" style="display:inline;">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-danger btn-sm" {% if leave.status == 'อนุมัติ' or leave.status == 'ไม่อนุมัติ' %}disabled{% endif %} onclick="return confirm('Are you sure you want to delete this leave?');">Delete</button>
-                        </form>
+                        {% if leave.status == 'รอดำเนินการ' %}
+                            <a href="{% url 'edit_leave' leave.id %}" class="btn btn-warning btn-sm">Edit</a>
+                            <form method="post" action="{% url 'delete_leave' leave.id %}" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this leave?');">Delete</button>
+                            </form>
+                        {% else %}
+                            <a href="#" class="btn btn-warning btn-sm disabled">Edit</a>
+                            <button type="button" class="btn btn-danger btn-sm" disabled>Delete</button>
+                        {% endif %}
                     {% endif %}
                 </td>
             </tr>
             {% empty %}
             <tr>
-                <td colspan="6" class="text-center">No leave history found.</td>
+                <td colspan="8" class="text-center">No leave history found.</td>
             </tr>
             {% endfor %}
         </tbody>

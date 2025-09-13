@@ -9,55 +9,35 @@
         {% endfor %}
     {% endif %}
 <div class="container mt-5">
-    <h2 class="mb-4">ฟอร์มขอลา {{ user.username }} (Leave Request Form)</h2>
+    <h2 class="mb-4">ฟอร์มขอลา  (Leave Request Form)</h2>
 
     <!-- ตารางสิทธิวันลา -->
     <div class="mb-4">
-        <h5>ลาป่วย</h5>
+        <h5>ประวัติการลา</h5>
         <table class="table table-bordered w-auto">
             <thead class="table-secondary">
                 <tr>
-                    <th>ลาป่วยทั้งหมด</th>
+                    <th></th>
+                    <th>ทั้งหมด</th>
                     <th>ใช้ไป</th>
                     <th>คงเหลือ</th>
                 </tr>
             </thead>
             <tbody>
                 <tr>
+                    <th>ลาป่วย</th>
                     <td>{{ profile.sick_leave_total }}</td>
                     <td>{{ profile.sick_leave_used }}</td>
                     <td>{{ profile.sick_leave_remaining }}</td>
                 </tr>
-            </tbody>
-        </table>
-        <h5>ลากิจ</h5>
-        <table class="table table-bordered w-auto">
-            <thead class="table-secondary">
                 <tr>
-                    <th>ลากิจทั้งหมด</th>
-                    <th>ใช้ไป</th>
-                    <th>คงเหลือ</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
+                    <th>ลากิจ</th>
                     <td>{{ profile.absence_leave_total }}</td>
                     <td>{{ profile.absence_leave_used }}</td>
                     <td>{{ profile.absence_leave_remaining }}</td>
                 </tr>
-            </tbody>
-        </table>
-        <h5>ลาพักร้อน</h5>
-        <table class="table table-bordered w-auto">
-            <thead class="table-secondary">
                 <tr>
-                    <th>ลาพักร้อนทั้งหมด</th>
-                    <th>ใช้ไป</th>
-                    <th>คงเหลือ</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
+                    <th>ลาพักร้อน</th>
                     <td>{{ profile.vacation_leave_total }}</td>
                     <td>{{ profile.vacation_leave_used }}</td>
                     <td>{{ profile.vacation_leave_remaining }}</td>
@@ -70,39 +50,47 @@
         {% csrf_token %}
         <div class="mb-3">
             <label for="name" class="form-label">ชื่อ</label>
-            <input type="text" class="form-control" id="name" name="name" value="{{ leave.name|default:user.username }}" required>
+            <input type="text" class="form-control" id="name" name="name" value="{{ profile.user.first_name }} {{ profile.user.last_name }}" required readonly>
         </div>
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label for="submit_date" class="form-label">ลาวันที่</label>
+                <input type="date" class="form-control" id="submit_date" name="submit_date" value="{{ leave.leave_date_from|date:'Y-m-d'|default:'' }}" required>
+            </div>
+            <div class="col-md-6">
+                <label for="leave_date" class="form-label">ถึงวันที่</label>
+                <input type="date" class="form-control" id="leave_date" name="leave_date" value="{{ leave.leave_date_to|date:'Y-m-d'|default:'' }}" required>
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label for="reason" class="form-label">เหตุผลการลา</label>
+                <select class="form-select" id="reason" name="reason" required>
+                    <option value="">-- กรุณาเลือกเหตุผล --</option>
+                    <option value="ป่วย" {% if leave.reason == "ป่วย" %}selected{% endif %}>ป่วย</option>
+                    <option value="กิจส่วนตัว" {% if leave.reason == "กิจส่วนตัว" %}selected{% endif %}>กิจส่วนตัว</option>
+                    <option value="ลาพักร้อน" {% if leave.reason == "ลาพักร้อน" %}selected{% endif %}>ลาพักร้อน</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label for="status" class="form-label">สถานะ</label>
+                {% if is_leave_admin %}
+                <select class="form-select" id="status" name="status" required>
+                    <option value="">-- กรุณาเลือกสถานะ --</option>
+                    <option value="รอดำเนินการ" {% if leave.status == "รอดำเนินการ" %}selected{% endif %}>รอดำเนินการ</option>
+                    <option value="อนุมัติ" {% if leave.status == "อนุมัติ" %}selected{% endif %}>อนุมัติ</option>
+                    <option value="ไม่อนุมัติ" {% if leave.status == "ไม่อนุมัติ" %}selected{% endif %}>ไม่อนุมัติ</option>
+                </select>
+                {% else %}
+                <input type="text" class="form-control" id="status" name="status" value="{{ leave.status|default:'รอดำเนินการ' }}" readonly>
+                {% endif %}
+            </div>
+        </div>
+        <!-- Add this inside your form in formleave.html -->
         <div class="mb-3">
-            <label for="submit_date" class="form-label">ลาวันที่</label>
-            <input type="date" class="form-control" id="submit_date" name="submit_date" value="{{ leave.leave_date_from|date:'Y-m-d'|default:'' }}" required>
-        </div>
-        <div class="mb-3">
-            <label for="leave_date" class="form-label">ถึงวันที่</label>
-            <input type="date" class="form-control" id="leave_date" name="leave_date" value="{{ leave.leave_date_to|date:'Y-m-d'|default:'' }}" required>
-        </div>
-        <div class="mb-3">
-            <label for="reason" class="form-label">เหตุผลการลา</label>
-            <select class="form-select" id="reason" name="reason" required>
-                <option value="">-- กรุณาเลือกเหตุผล --</option>
-                <option value="ป่วย" {% if leave.reason == "ป่วย" %}selected{% endif %}>ป่วย</option>
-                <option value="กิจส่วนตัว" {% if leave.reason == "กิจส่วนตัว" %}selected{% endif %}>กิจส่วนตัว</option>
-                <option value="ลาพักร้อน" {% if leave.reason == "ลาพักร้อน" %}selected{% endif %}>ลาพักร้อน</option>
-            </select>
-        </div>
-        <div class="mb-3">
-            {% if is_leave_admin %}
-            <label for="status" class="form-label">สถานะ</label>
-            <select class="form-select" id="status" name="status" required>
-                <option value="">-- กรุณาเลือกสถานะ --</option>
-                <option value="รอดำเนินการ" {% if leave.status == "รอดำเนินการ" %}selected{% endif %}>รอดำเนินการ</option>
-                <option value="อนุมัติ" {% if leave.status == "อนุมัติ" %}selected{% endif %}>อนุมัติ</option>
-                <option value="ไม่อนุมัติ" {% if leave.status == "ไม่อนุมัติ" %}selected{% endif %}>ไม่อนุมัติ</option>
-            </select>
-            {% else %}
-            <label for="status" class="form-label">สถานะ</label>
-            <input type="text" class="form-control" id="status" name="status" value="{{ leave.status|default:'รอดำเนินการ' }}" readonly>
-            {% endif %}
-        </div>
+            <label for="remarks" class="form-label">หมายเหตุ (Remark)</label>
+        <textarea class="form-control" id="remarks" name="remarks" rows="3">{% if leave %}{{ leave.remarks|default_if_none:'' }}{% else %}{{ remarks|default_if_none:'' }}{% endif %}</textarea>
+        </div>  
         <div class="mb-3">
             <label for="document" class="form-label">เอกสารแนบ (ถ้ามี)</label>
             <input type="file" class="form-control" id="document" name="document">
@@ -110,6 +98,7 @@
                 <p>ไฟล์เดิม: <a href="{{ leave.document.url }}" target="_blank">{{ leave.document.name }}</a></p>
             {% endif %}
         </div>
+        
         <button type="submit" class="btn btn-primary">ส่งคำขอลา</button>
     </form>
 </div>

@@ -13,13 +13,12 @@
     <body>
         {% csrf_token %}
         {% if user.is_authenticated %}
-        {% block content %}
-        {% endblock %}
+            {% block content %}
+            {% endblock %}
         {% else %}
-        <!-- <script>
+        <script>
             window.location.href = "{% url 'login' %}";
-        </script> -->
-
+        </script>
         {% endif %}
         <footer class="bg-light text-center text-muted py-3 mt-5">
             <div class="container">
