@@ -59,6 +59,29 @@ def holiday(request):
     return render(request, "leaveapp/holiday.html", {"holidays": holidays})
 
 
+def change_password(request):
+    if request.method == "POST":
+        current_password = request.POST.get("current_password")
+        new_password = request.POST.get("new_password")
+        confirm_password = request.POST.get("confirm_password")
+
+        if not request.user.check_password(current_password):
+            messages.error(request, "Current password is incorrect.")
+        elif new_password != confirm_password:
+            messages.error(request, "New password and confirmation do not match.")
+        elif len(new_password) < 8:
+            messages.error(request, "New password must be at least 8 characters long.")
+        else:
+            request.user.set_password(new_password)
+            request.user.save()
+            messages.success(
+                request, "Password changed successfully. Please log in again."
+            )
+            return redirect("login")
+
+    return render(request, "accounts/change_password.html")
+
+
 def formleave(request):
     user = request.user
     # Determine admin flag and load profile if available
