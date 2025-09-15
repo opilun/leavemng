@@ -20,13 +20,16 @@ from .models import Holiday, Leave_Detail, Profile
 
 
 def home(request):
+    # Redirect admin users to approve_leave
+    if (
+        request.user.is_authenticated
+        and request.user.groups.filter(name="leaveAdmin").exists()
+    ):
+        return redirect("approve_leave")
     profile = Profile.objects.get(user=request.user)
-    if request.user.groups.filter(name="leaveAdmin").exists():
-        leave_history = Leave_Detail.objects.all().order_by("-submit_date", "-id")
-    else:
-        leave_history = Leave_Detail.objects.filter(
-            name=request.user.get_full_name()
-        ).order_by("-submit_date", "-id")
+    leave_history = Leave_Detail.objects.filter(
+        name=request.user.get_full_name()
+    ).order_by("-submit_date", "-id")
     return render(
         request,
         "leaveapp/home.html",
@@ -38,17 +41,39 @@ def home(request):
     )
 
 
-def login_page(request):
-    # check if user is already authenticated then redirect to home
-    if request.user.is_authenticated:
+def approve_leave(request):
+    if not request.user.groups.filter(name="leaveAdmin").exists():
+        messages.error(request, "You do not have permission to access this page.")
         return redirect("home")
+    # Show all records in Leave_History
+    leave_history = Leave_Detail.objects.all().order_by("-submit_date", "-id")
+    return render(
+        request, "leaveapp/approve_leave.html", {"leave_history": leave_history}
+    )
+
+
+def login_page(request):
+    # If user is already authenticated, redirect based on group
+    if request.user.is_authenticated:
+        if request.user.groups.filter(name="leaveUser").exists():
+            return redirect("home")
+        elif request.user.groups.filter(name="leaveAdmin").exists():
+            return redirect("approve_leave")
+        else:
+            return redirect("login")
     if request.method == "POST":
         username = request.POST.get("username")
         password = request.POST.get("password")
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            return redirect("home")
+            # Redirect based on group after login
+            if user.groups.filter(name="leaveUser").exists():
+                return redirect("home")
+            elif user.groups.filter(name="leaveAdmin").exists():
+                return redirect("approve_leave")
+            else:
+                return redirect("login")
         else:
             messages.error(request, "Username or password is incorrect.")
     return render(request, "accounts/login.html")
