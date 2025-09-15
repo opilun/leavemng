@@ -10,27 +10,35 @@
     </head>
 
     <body>
-            <div class="container text-center mt-5">
-                <h1>Welcome to the Leave Management System</h1>
-                <p class="fw-lighter">Please log in to access your dashboard.</p>
-    
-            </div>
-            <div class="d-flex justify-content-center align-items-center mt-4">
-                <form method="post" class="w-100" style="max-width: 320px;">
-                    {% csrf_token %}
-    
-                    <input type="text" name="username" class="form-control mb-2" placeholder="Username" required>
-                    <input type="password" name="password" class="form-control mb-3" placeholder="Password" required>
-                    <button type="submit" class="btn btn-primary w-100">Log in</button>
-                    {% if messages %}
-                    {% for message in messages %}
-                    <div class="alert alert-danger mt-3" role="alert">
-                        {{ message }}
+        <section class="vh-100 d-flex flex-column justify-content-center align-items-center" style="background-color: #5ca9f5ff;">
+            <div class="container py-5 h-100">
+                <div class="row d-flex justify-content-center align-items-center h-100">
+                    <div class="col-12 col-md-8 col-lg-6 col-xl-5">
+                        <div class="card shadow-2-strong" style="border-radius: 1rem;">
+                            <div class="card-body p-5 text-center">
+                                <h3 class="mb-1">Leave Management System</h3>
+                                <p class="fw-lighter">Please log in to access your dashboard.</p>
+                                <div class="d-flex justify-content-center align-items-center mt-4">
+                                    <form method="post" class="w-100" style="max-width: 320px;">
+                                        {% csrf_token %}                       
+                                        <input type="text" name="username" class="form-control mb-3" placeholder="Username" required>
+                                        <input type="password" name="password" class="form-control mb-3" placeholder="Password" required>
+                                        <button type="submit" class="btn btn-primary w-100">Log in</button>
+                                        {% if messages %}
+                                        {% for message in messages %}
+                                        <div class="alert alert-danger mt-3" role="alert">
+                                            {{ message }}
+                                        </div>
+                                        {% endfor %}
+                                        {% endif %}
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    {% endfor %}
-                    {% endif %}
-                </form>
+                </div>
             </div>
+        </section>
         <!-- Bootstrap JS Bundle CDN (optional, for interactive components) -->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     </body>
