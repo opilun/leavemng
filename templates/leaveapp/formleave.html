@@ -91,13 +91,13 @@
             <label for="remarks" class="form-label">หมายเหตุ (Remark)</label>
         <textarea class="form-control" id="remarks" name="remarks" rows="3">{% if leave %}{{ leave.remarks|default_if_none:'' }}{% else %}{{ remarks|default_if_none:'' }}{% endif %}</textarea>
         </div>  
-        <div class="mb-3">
+        {% comment %} <div class="mb-3">
             <label for="document" class="form-label">เอกสารแนบ (ถ้ามี)</label>
             <input type="file" class="form-control" id="document" name="document">
             {% if leave.document %}
                 <p>ไฟล์เดิม: <a href="{{ leave.document.url }}" target="_blank">{{ leave.document.name }}</a></p>
             {% endif %}
-        </div>
+        </div> {% endcomment %}
         
         <button type="submit" class="btn btn-primary">ส่งคำขอลา</button>
     </form>
