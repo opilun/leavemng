@@ -1,0 +1,65 @@
+{% extends 'leaveapp/layout.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <h2 class="mt-5">ยินดีต้อนรับนะจ๊ะ {{ profile.user.first_name }} {{ profile.user.last_name }}</h2>
+
+<!-- Show Approved Leaves -->
+<div class="container mt-3">
+    <h5 class="mb-2">อนุมัติวันลา</h5>
+    <table class="table table-bordered table-striped">
+        <thead class="table-primary">
+            <tr>
+                <th>วันที่ยื่น</th>
+                <th>ชื่อ</th>
+                <th>วันที่ลา</th>
+                <th>ถึงวันที่</th>
+                <th>จำนวนวันลา</th>
+                <th>เหตุผลการลา</th>
+                <th>สถานะ</th>
+                <th>การดำเนินการ</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for leave in leave_history %}
+            <tr>
+                <td>{{ leave.submit_date|date:"d-m-Y" }}</td>
+                <td>{{ leave.name }}</td>
+                <td>{{ leave.leave_date_from|date:"d-m-Y" }}</td>
+                <td>{{ leave.leave_date_to|date:"d-m-Y" }}</td>
+                <td>{{ leave.leave_days_count }}</td>
+                <td>{{ leave.reason }}</td>
+                <td>{{ leave.status }}</td>
+                <td>
+                    {% if leave.status == 'อนุมัติ' %}
+                        <a href="{% url 'export_leave_pdf' leave.id %}" class="btn btn-success btn-sm">Export PDF</a>
+                    {% elif is_leave_admin %}
+                        <a href="{% url 'edit_leave' leave.id %}" class="btn btn-warning btn-sm">Edit</a>
+                        <form method="post" action="{% url 'delete_leave' leave.id %}" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this leave?');">Delete</button>
+                        </form>
+                    {% else %}
+                        {% if leave.status == 'รอดำเนินการ' %}
+                            <a href="{% url 'edit_leave' leave.id %}" class="btn btn-warning btn-sm">Edit</a>
+                            <form method="post" action="{% url 'delete_leave' leave.id %}" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this leave?');">Delete</button>
+                            </form>
+                        {% else %}
+                            <a href="#" class="btn btn-warning btn-sm disabled">Edit</a>
+                            <button type="button" class="btn btn-danger btn-sm" disabled>Delete</button>
+                        {% endif %}
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="8" class="text-center">No leave history found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
