@@ -4,6 +4,7 @@ import os
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
+from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
 
@@ -19,6 +20,7 @@ from .models import Holiday, Leave_Detail, Profile
 # Create your views here.
 
 
+@login_required(login_url="login")
 def home(request):
     # Redirect admin users to approve_leave
     if (
