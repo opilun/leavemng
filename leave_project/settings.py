@@ -28,7 +28,7 @@ SECRET_KEY = "django-insecure--s3uxu6)a%1j$u+mb65v+cmrapf-i_2$qn2ygf3_gwf^v$+ao2
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ["localhost", "leaveiwit.azurewebsites.net"]
+ALLOWED_HOSTS = ["leave-iwit.azurewebsites.net"]
 
 
 # Application definition
@@ -139,7 +139,7 @@ SESSION_COOKIE_AGE = 600  # 10 minutes in seconds
 SESSION_SAVE_EVERY_REQUEST = True  # Reset timer on each request
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://leaveiwit.azurewebsites.net",
+    "https://leave-iwit.azurewebsites.net",
 ]
 
 CSRF_COOKIE_SECURE = True
