@@ -8,7 +8,7 @@
             </div>
         {% endfor %}
     {% endif %}
-<div class="container mt-5">
+<div class="container pt-5 pb-5">
     <h2 class="mb-4">ฟอร์มขอลา  (Leave Request Form)</h2>
 
     <!-- ตารางสิทธิวันลา -->
@@ -91,7 +91,7 @@
             <label for="remarks" class="form-label">หมายเหตุ (Remark)</label>
         <textarea class="form-control" id="remarks" name="remarks" rows="3">{% if leave %}{{ leave.remarks|default_if_none:'' }}{% else %}{{ remarks|default_if_none:'' }}{% endif %}</textarea>
         </div>  
-        {% comment %} <div class="mb-3">
+       {% comment %} <div class="mb-3">
             <label for="document" class="form-label">เอกสารแนบ (ถ้ามี)</label>
             <input type="file" class="form-control" id="document" name="document">
             {% if leave.document %}
@@ -100,26 +100,27 @@
         </div> {% endcomment %}
         
         <button type="submit" class="btn btn-primary">ส่งคำขอลา</button>
+
     </form>
 </div>
 
 <script>
-// JavaScript to set default leave_date to submit_date and prevent selecting before submit_date
-document.addEventListener('DOMContentLoaded', function() {
-    const submitDate = document.getElementById('submit_date');
-    const leaveDate = document.getElementById('leave_date');
-
-    // Set leave_date default to submit_date on page load/change
-    submitDate.addEventListener('change', function() {
-        leaveDate.value = submitDate.value;
-        leaveDate.min = submitDate.value; // Prevent selecting before submit_date
+    // JavaScript to set default leave_date to submit_date and prevent selecting before submit_date
+    document.addEventListener('DOMContentLoaded', function() {
+        const submitDate = document.getElementById('submit_date');
+        const leaveDate = document.getElementById('leave_date');
+        
+        // Set leave_date default to submit_date on page load/change
+        submitDate.addEventListener('change', function() {
+            leaveDate.value = submitDate.value;
+            leaveDate.min = submitDate.value; // Prevent selecting before submit_date
+        });
+        
+        // On page load, set min attribute if submit_date already has a value
+        if (submitDate.value) {
+            leaveDate.min = submitDate.value;
+        }
     });
-
-    // On page load, set min attribute if submit_date already has a value
-    if (submitDate.value) {
-        leaveDate.min = submitDate.value;
-    }
-});
 </script>
 
 {% endblock %}

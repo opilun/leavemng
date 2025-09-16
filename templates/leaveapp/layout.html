@@ -11,16 +11,18 @@
     </head>
 
     <body>
-        {% csrf_token %}
-        {% if user.is_authenticated %}
-            {% block content %}
-            {% endblock %}
-        {% else %}
-        <script>
-            window.location.href = "{% url 'login' %}";
-        </script>
-        {% endif %}
-        <footer class="bg-light text-center text-muted py-3 mt-5">
+        <div style="background-color: #ecece4ff;">
+            {% csrf_token %}
+            {% if user.is_authenticated %}
+                {% block content %}
+                {% endblock %}
+            {% else %}
+            <script>
+                window.location.href = "{% url 'login' %}";
+            </script>
+            {% endif %}
+        </div>
+        <footer class="bg-light text-center text-muted py-3 mt-0">
             <div class="container">
                 &copy; {{ year|default:2025 }} Leave Management System. All rights reserved.
             </div>
