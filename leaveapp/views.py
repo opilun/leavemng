@@ -3,7 +3,6 @@ import os
 
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
@@ -47,66 +46,19 @@ def approve_leave(request):
     if not request.user.groups.filter(name="leaveAdmin").exists():
         messages.error(request, "You do not have permission to access this page.")
         return redirect("home")
-    # Show all records in Leave_History
+    # Show all records in Leave_History for admin
+
     leave_history = Leave_Detail.objects.all().order_by("-submit_date", "-id")
     return render(
-        request, "leaveapp/approve_leave.html", {"leave_history": leave_history}
+        request,
+        "leaveapp/approve_leave.html",
+        {"leave_history": leave_history, "is_leave_admin": True},
     )
-
-
-def login_page(request):
-    # If user is already authenticated, redirect based on group
-    if request.user.is_authenticated:
-        if request.user.groups.filter(name="leaveUser").exists():
-            return redirect("home")
-        elif request.user.groups.filter(name="leaveAdmin").exists():
-            return redirect("approve_leave")
-        else:
-            return redirect("login")
-    if request.method == "POST":
-        username = request.POST.get("username")
-        password = request.POST.get("password")
-        user = authenticate(request, username=username, password=password)
-        if user is not None:
-            login(request, user)
-            # Redirect based on group after login
-            if user.groups.filter(name="leaveUser").exists():
-                return redirect("home")
-            elif user.groups.filter(name="leaveAdmin").exists():
-                return redirect("approve_leave")
-            else:
-                return redirect("login")
-        else:
-            messages.error(request, "Username or password is incorrect.")
-    return render(request, "accounts/login.html")
 
 
 def holiday(request):
     holidays = Holiday.objects.all()
     return render(request, "leaveapp/holiday.html", {"holidays": holidays})
-
-
-def change_password(request):
-    if request.method == "POST":
-        current_password = request.POST.get("current_password")
-        new_password = request.POST.get("new_password")
-        confirm_password = request.POST.get("confirm_password")
-
-        if not request.user.check_password(current_password):
-            messages.error(request, "Current password is incorrect.")
-        elif new_password != confirm_password:
-            messages.error(request, "New password and confirmation do not match.")
-        elif len(new_password) < 8:
-            messages.error(request, "New password must be at least 8 characters long.")
-        else:
-            request.user.set_password(new_password)
-            request.user.save()
-            messages.success(
-                request, "Password changed successfully. Please log in again."
-            )
-            return redirect("login")
-
-    return render(request, "accounts/change_password.html")
 
 
 def formleave(request):

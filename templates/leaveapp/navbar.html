@@ -10,20 +10,27 @@
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'home' %}">Home</a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'formleave' %}">เพิ่มวันลา</a>
-                </li>
+                {% if is_leave_admin %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'user_management' %}">User Management</a>
+                    </li>
+                {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'formleave' %}">เพิ่มวันลา</a>
+                    </li>
+                {% endif %}     
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'holidays' %}">วันหยุดบริษัท</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'change_password' %}">Change Password</a>
                 </li>
+
                 <li class="nav-item">
                     {% if user.is_authenticated %}
                     <form action="{% url 'logout' %}" method="post">
                         {% csrf_token %}
-                        <button type="submit" class="btn btn-primary">Logout</button>
+                        <button type="submit" class="btn btn-primary">Logout</button>   
                     </form>
                     {% else %}
                     <a class="btn btn-primary" href="{% url 'login' %}">Login</a>

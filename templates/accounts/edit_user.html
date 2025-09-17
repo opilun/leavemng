@@ -1,0 +1,32 @@
+<!-- filepath: /Users/opilun/Coding/django/leavemng/templates/accounts/edit_user.html -->
+{% extends 'leaveapp/layout.html' %}
+{% block content %}
+<div class="container pt-5">
+    <h2>Edit User: {{ user_obj.username }}</h2>
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-2">
+            <label>Email:</label>
+            <input type="email" name="email" value="{{ user_obj.email }}" class="form-control" required>
+        </div>
+        <div class="mb-2">
+            <label>First Name:</label>
+            <input type="text" name="first_name" value="{{ user_obj.first_name }}" class="form-control">
+        </div>
+        <div class="mb-2">
+            <label>Last Name:</label>
+            <input type="text" name="last_name" value="{{ user_obj.last_name }}" class="form-control">
+        </div>
+        <div class="form-check mb-2">
+            <input type="checkbox" name="is_staff" class="form-check-input" {% if user_obj.is_staff %}checked{% endif %}>
+            <label class="form-check-label">Is Staff</label>
+        </div>
+        <div class="form-check mb-2">
+            <input type="checkbox" name="is_active" class="form-check-input" {% if user_obj.is_active %}checked{% endif %}>
+            <label class="form-check-label">Is Active</label>
+        </div>
+        <button type="submit" class="btn btn-success">Save</button>
+        <a href="{% url 'user_management' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}
