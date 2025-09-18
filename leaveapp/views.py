@@ -43,6 +43,10 @@ def home(request):
 
 
 def approve_leave(request):
+    user = request.user
+    is_leave_admin = (
+        user.is_authenticated and user.groups.filter(name="leaveAdmin").exists()
+    )
     if not request.user.groups.filter(name="leaveAdmin").exists():
         messages.error(request, "You do not have permission to access this page.")
         return redirect("home")
@@ -52,13 +56,21 @@ def approve_leave(request):
     return render(
         request,
         "leaveapp/approve_leave.html",
-        {"leave_history": leave_history, "is_leave_admin": True},
+        {"leave_history": leave_history, "is_leave_admin": is_leave_admin},
     )
 
 
 def holiday(request):
+    user = request.user
+    is_leave_admin = (
+        user.is_authenticated and user.groups.filter(name="leaveAdmin").exists()
+    )
     holidays = Holiday.objects.all()
-    return render(request, "leaveapp/holiday.html", {"holidays": holidays})
+    return render(
+        request,
+        "leaveapp/holiday.html",
+        {"holidays": holidays, "is_leave_admin": is_leave_admin},
+    )
 
 
 def formleave(request):
@@ -171,6 +183,17 @@ def formleave(request):
         "leaveapp/formleave.html",
         {"user": user, "profile": profile, "is_leave_admin": is_leave_admin},
     )
+
+
+def approve_form(request, leave_id):
+    leave = Leave_Detail.objects.get(id=leave_id)
+    if request.method == "POST":
+        leave.status = request.POST.get("status")
+        leave.remarks = request.POST.get("remarks")
+        leave.save()
+        messages.success(request, "Leave status updated successfully.")
+        return redirect("approve_leave")
+    return render(request, "leaveapp/approve_form.html", {"leave": leave})
 
 
 @require_POST

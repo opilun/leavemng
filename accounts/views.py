@@ -37,6 +37,8 @@ def login_page(request):
 
 
 def edit_user(request, user_id):
+    user = request.user
+    is_leave_admin = user.groups.filter(name="leaveAdmin").exists()
     user = get_object_or_404(User, id=user_id)
     if request.method == "POST":
         user.email = request.POST.get("email")
@@ -47,7 +49,11 @@ def edit_user(request, user_id):
         user.save()
         messages.success(request, "User updated successfully.")
         return redirect("user_management")
-    return render(request, "accounts/edit_user.html", {"user_obj": user})
+    return render(
+        request,
+        "accounts/edit_user.html",
+        {"user_obj": user, "is_leave_admin": is_leave_admin},
+    )
 
 
 def delete_user(request, user_id):
