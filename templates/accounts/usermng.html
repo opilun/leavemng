@@ -2,14 +2,14 @@
 {% block content %}
 <div class="container pt-5 pb-5">
     <h2 class="mb-3">User Management</h2>
+    <a href="{% url 'add_user' %}" class="btn btn-success mb-3">Add User</a>
     <table class="table table-bordered table-striped">
         <thead class="table-primary">
             <tr>
                 <th>Username</th>
-                <th>Email</th>
                 <th>First Name</th>
                 <th>Last Name</th>
-                <th>Is Staff</th>
+                <th>Email</th>
                 <th>Is Active</th>
                 <th>Actions</th>
             </tr>
@@ -18,10 +18,9 @@
             {% for profile in profiles %}
             <tr>
                 <td>{{ profile.user.username }}</td>
-                <td>{{ profile.user.email }}</td>
                 <td>{{ profile.user.first_name }}</td>
                 <td>{{ profile.user.last_name }}</td>
-                <td>{{ profile.user.is_staff }}</td>
+                <td>{{ profile.user.email }}</td>
                 <td>{{ profile.user.is_active }}</td>
                 <td>
                     <a href="{% url 'edit_user' profile.user.id %}" class="btn btn-sm btn-warning">Edit</a>
@@ -38,4 +37,6 @@
             {% endfor %}
         </tbody>
     </table>
+</div>
+
 {% endblock %}

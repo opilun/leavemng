@@ -42,6 +42,7 @@ def home(request):
     )
 
 
+@login_required(login_url="login")
 def approve_leave(request):
     user = request.user
     is_leave_admin = (
@@ -190,6 +191,47 @@ def approve_form(request, leave_id):
     if request.method == "POST":
         leave.status = request.POST.get("status")
         leave.remarks = request.POST.get("remarks")
+
+        # If status is "อนุมัติ", recalculate leave_days_count and update leave remaining
+        if leave.status == "อนุมัติ":
+            # Get all holidays as a set of dates
+            holidays = set(Holiday.objects.values_list("date", flat=True))
+            leave_days_count = 0
+            current_day = leave.leave_date_from
+            while current_day <= leave.leave_date_to:
+                if current_day.weekday() not in (5, 6) and current_day not in holidays:
+                    leave_days_count += 1
+                current_day += datetime.timedelta(days=1)
+            leave.leave_days_count = leave_days_count
+
+            # Update leave remaining in Profile if possible
+            try:
+                from django.contrib.auth.models import User
+
+                user_obj = User.objects.get(
+                    first_name=leave.name.split(" ")[0],
+                    last_name=" ".join(leave.name.split(" ")[1:]),
+                )
+                profile = Profile.objects.get(user=user_obj)
+                if leave.reason == "ป่วย":
+                    profile.sick_leave_used += leave_days_count
+                    profile.sick_leave_remaining = (
+                        profile.sick_leave_total - profile.sick_leave_used
+                    )
+                elif leave.reason == "กิจส่วนตัว":
+                    profile.absence_leave_used += leave_days_count
+                    profile.absence_leave_remaining = (
+                        profile.absence_leave_total - profile.absence_leave_used
+                    )
+                elif leave.reason == "ลาพักร้อน":
+                    profile.vacation_leave_used += leave_days_count
+                    profile.vacation_leave_remaining = (
+                        profile.vacation_leave_total - profile.vacation_leave_used
+                    )
+                profile.save()
+            except (Profile.DoesNotExist, User.DoesNotExist):
+                pass
+
         leave.save()
         messages.success(request, "Leave status updated successfully.")
         return redirect("approve_leave")
@@ -289,6 +331,42 @@ def edit_leave(request, leave_id):
                 day_only = day
             if (day_only not in holidays) and (day.weekday() not in (5, 6)):
                 leave_days_count += 1
+
+        # Check leave_used not more than leave_remaining
+        try:
+            current_profile = Profile.objects.get(user=user)
+        except Profile.DoesNotExist:
+            current_profile = None
+
+        if current_profile:
+            leave_remaining = None
+            # leave_used = None
+            if leave.reason == "ป่วย":
+                leave_remaining = current_profile.sick_leave_remaining
+                # leave_used = current_profile.sick_leave_used
+            elif leave.reason == "กิจส่วนตัว":
+                leave_remaining = current_profile.absence_leave_remaining
+                # leave_used = current_profile.absence_leave_used
+            elif leave.reason == "ลาพักร้อน":
+                leave_remaining = current_profile.vacation_leave_remaining
+                # leave_used = current_profile.vacation_leave_used
+
+            if leave_remaining is not None and leave_days_count > leave_remaining:
+                messages.error(
+                    request,
+                    f"You cannot request more days than your remaining leave ({leave_remaining} days left).",
+                )
+                return render(
+                    request,
+                    "leaveapp/formleave.html",
+                    {
+                        "user": user,
+                        "profile": current_profile,
+                        "leave": leave,
+                        "is_leave_admin": is_leave_admin,
+                    },
+                )
+
         leave.leave_days_count = leave_days_count
 
         if (
