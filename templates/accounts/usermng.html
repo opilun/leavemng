@@ -10,6 +10,7 @@
                 <th>First Name</th>
                 <th>Last Name</th>
                 <th>Email</th>
+                <th>Group</th>
                 <th>Is Active</th>
                 <th>Actions</th>
             </tr>
@@ -21,6 +22,13 @@
                 <td>{{ profile.user.first_name }}</td>
                 <td>{{ profile.user.last_name }}</td>
                 <td>{{ profile.user.email }}</td>
+                <td>
+                    {% for group in profile.user.groups.all %}
+                        {{ group.name }}{% if not forloop.last %}, {% endif %}
+                    {% empty %}
+                        -
+                    {% endfor %}
+                </td>
                 <td>{{ profile.user.is_active }}</td>
                 <td>
                     {% if profile.user.username != "admin" %}
