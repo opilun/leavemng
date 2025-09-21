@@ -3,6 +3,7 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Group, User
 from django.db import transaction
+from django.db.models import OuterRef, Subquery
 from django.shortcuts import get_object_or_404, redirect, render
 
 from leaveapp.models import Profile
@@ -134,7 +135,15 @@ def user_management(request):
     if not request.user.groups.filter(name="leaveAdmin").exists():
         messages.error(request, "You do not have permission to access this page.")
         return redirect("home")
-    profiles = Profile.objects.all().order_by("user__first_name", "user__last_name")
+    # Annotate each profile with the first group name (alphabetically)
+    profiles = Profile.objects.annotate(
+        group_name=Subquery(
+            User.groups.through.objects.filter(user_id=OuterRef("user_id"))
+            .select_related("group")
+            .order_by("group__name")
+            .values("group__name")[:1]
+        )
+    ).order_by("group_name", "user__username")
     return render(
         request, "accounts/usermng.html", {"profiles": profiles, "is_leave_admin": True}
     )
