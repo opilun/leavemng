@@ -3,7 +3,6 @@ import os
 
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
@@ -43,70 +42,36 @@ def home(request):
     )
 
 
+@login_required(login_url="login")
 def approve_leave(request):
+    user = request.user
+    is_leave_admin = (
+        user.is_authenticated and user.groups.filter(name="leaveAdmin").exists()
+    )
     if not request.user.groups.filter(name="leaveAdmin").exists():
         messages.error(request, "You do not have permission to access this page.")
         return redirect("home")
-    # Show all records in Leave_History
+    # Show all records in Leave_History for admin
+
     leave_history = Leave_Detail.objects.all().order_by("-submit_date", "-id")
     return render(
-        request, "leaveapp/approve_leave.html", {"leave_history": leave_history}
+        request,
+        "leaveapp/approve_leave.html",
+        {"leave_history": leave_history, "is_leave_admin": is_leave_admin},
     )
 
 
-def login_page(request):
-    # If user is already authenticated, redirect based on group
-    if request.user.is_authenticated:
-        if request.user.groups.filter(name="leaveUser").exists():
-            return redirect("home")
-        elif request.user.groups.filter(name="leaveAdmin").exists():
-            return redirect("approve_leave")
-        else:
-            return redirect("login")
-    if request.method == "POST":
-        username = request.POST.get("username")
-        password = request.POST.get("password")
-        user = authenticate(request, username=username, password=password)
-        if user is not None:
-            login(request, user)
-            # Redirect based on group after login
-            if user.groups.filter(name="leaveUser").exists():
-                return redirect("home")
-            elif user.groups.filter(name="leaveAdmin").exists():
-                return redirect("approve_leave")
-            else:
-                return redirect("login")
-        else:
-            messages.error(request, "Username or password is incorrect.")
-    return render(request, "accounts/login.html")
-
-
 def holiday(request):
+    user = request.user
+    is_leave_admin = (
+        user.is_authenticated and user.groups.filter(name="leaveAdmin").exists()
+    )
     holidays = Holiday.objects.all()
-    return render(request, "leaveapp/holiday.html", {"holidays": holidays})
-
-
-def change_password(request):
-    if request.method == "POST":
-        current_password = request.POST.get("current_password")
-        new_password = request.POST.get("new_password")
-        confirm_password = request.POST.get("confirm_password")
-
-        if not request.user.check_password(current_password):
-            messages.error(request, "Current password is incorrect.")
-        elif new_password != confirm_password:
-            messages.error(request, "New password and confirmation do not match.")
-        elif len(new_password) < 8:
-            messages.error(request, "New password must be at least 8 characters long.")
-        else:
-            request.user.set_password(new_password)
-            request.user.save()
-            messages.success(
-                request, "Password changed successfully. Please log in again."
-            )
-            return redirect("login")
-
-    return render(request, "accounts/change_password.html")
+    return render(
+        request,
+        "leaveapp/holiday.html",
+        {"holidays": holidays, "is_leave_admin": is_leave_admin},
+    )
 
 
 def formleave(request):
@@ -221,6 +186,58 @@ def formleave(request):
     )
 
 
+def approve_form(request, leave_id):
+    leave = Leave_Detail.objects.get(id=leave_id)
+    if request.method == "POST":
+        leave.status = request.POST.get("status")
+        leave.remarks = request.POST.get("remarks")
+
+        # If status is "อนุมัติ", recalculate leave_days_count and update leave remaining
+        if leave.status == "อนุมัติ":
+            # Get all holidays as a set of dates
+            holidays = set(Holiday.objects.values_list("date", flat=True))
+            leave_days_count = 0
+            current_day = leave.leave_date_from
+            while current_day <= leave.leave_date_to:
+                if current_day.weekday() not in (5, 6) and current_day not in holidays:
+                    leave_days_count += 1
+                current_day += datetime.timedelta(days=1)
+            leave.leave_days_count = leave_days_count
+
+            # Update leave remaining in Profile if possible
+            try:
+                from django.contrib.auth.models import User
+
+                user_obj = User.objects.get(
+                    first_name=leave.name.split(" ")[0],
+                    last_name=" ".join(leave.name.split(" ")[1:]),
+                )
+                profile = Profile.objects.get(user=user_obj)
+                if leave.reason == "ป่วย":
+                    profile.sick_leave_used += leave_days_count
+                    profile.sick_leave_remaining = (
+                        profile.sick_leave_total - profile.sick_leave_used
+                    )
+                elif leave.reason == "กิจส่วนตัว":
+                    profile.absence_leave_used += leave_days_count
+                    profile.absence_leave_remaining = (
+                        profile.absence_leave_total - profile.absence_leave_used
+                    )
+                elif leave.reason == "ลาพักร้อน":
+                    profile.vacation_leave_used += leave_days_count
+                    profile.vacation_leave_remaining = (
+                        profile.vacation_leave_total - profile.vacation_leave_used
+                    )
+                profile.save()
+            except (Profile.DoesNotExist, User.DoesNotExist):
+                pass
+
+        leave.save()
+        messages.success(request, "Leave status updated successfully.")
+        return redirect("approve_leave")
+    return render(request, "leaveapp/approve_form.html", {"leave": leave})
+
+
 @require_POST
 def delete_leave(request, leave_id):
     user = request.user
@@ -314,6 +331,42 @@ def edit_leave(request, leave_id):
                 day_only = day
             if (day_only not in holidays) and (day.weekday() not in (5, 6)):
                 leave_days_count += 1
+
+        # Check leave_used not more than leave_remaining
+        try:
+            current_profile = Profile.objects.get(user=user)
+        except Profile.DoesNotExist:
+            current_profile = None
+
+        if current_profile:
+            leave_remaining = None
+            # leave_used = None
+            if leave.reason == "ป่วย":
+                leave_remaining = current_profile.sick_leave_remaining
+                # leave_used = current_profile.sick_leave_used
+            elif leave.reason == "กิจส่วนตัว":
+                leave_remaining = current_profile.absence_leave_remaining
+                # leave_used = current_profile.absence_leave_used
+            elif leave.reason == "ลาพักร้อน":
+                leave_remaining = current_profile.vacation_leave_remaining
+                # leave_used = current_profile.vacation_leave_used
+
+            if leave_remaining is not None and leave_days_count > leave_remaining:
+                messages.error(
+                    request,
+                    f"You cannot request more days than your remaining leave ({leave_remaining} days left).",
+                )
+                return render(
+                    request,
+                    "leaveapp/formleave.html",
+                    {
+                        "user": user,
+                        "profile": current_profile,
+                        "leave": leave,
+                        "is_leave_admin": is_leave_admin,
+                    },
+                )
+
         leave.leave_days_count = leave_days_count
 
         if (

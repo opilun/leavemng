@@ -1,0 +1,118 @@
+<!-- filepath: /Users/opilun/Coding/django/leavemng/templates/accounts/edit_user.html -->
+{% extends 'leaveapp/layout.html' %}
+{% block content %}
+<div class="container pt-5">
+    <h2>Edit User: {{ user_obj.username }}</h2>
+    <form method="post">
+        {% csrf_token %}
+        <div class="row mb-2">
+            <div class="col-md-6">
+                <label>First Name:</label>
+                <input type="text" name="first_name" value="{{ user_obj.first_name }}" class="form-control">
+            </div>
+            <div class="col-md-6">
+                <label>Last Name:</label>
+                <input type="text" name="last_name" value="{{ user_obj.last_name }}" class="form-control">
+            </div>
+        </div>
+        <div class="row mb-2">
+                <div class="col-md-4">
+                    <label>Email:</label>
+                    <input type="email" name="email" value="{{ user_obj.email }}" class="form-control" required>
+                </div>
+                <div class="col-md-4">
+                    <label>ตำแหน่ง:</label>
+                    <input type="text" name="position" value="{{ profile.position }}" class="form-control" required>
+                </div>
+                <div class="col-md-4">
+                    <label>เบอร์โทร:</label>
+                    <input type="text" name="mobile" value="{{ profile.mobile }}" class="form-control" required>
+                </div>
+        </div>
+        <div class="row mb-2">
+            <div class="col-md-2">
+            <label>วันลาป่วยทั้งหมด:</label>
+            <input type="text" name="sick_leave_total" value="{{ profile.sick_leave_total }}" class="form-control" id="sick_leave_total">
+            </div>
+            <div class="col-md-2">
+            <label>วันลาป่วยที่ใช้ไป:</label>
+            <input type="text" name="sick_leave_used" value="{{ profile.sick_leave_used }}" class="form-control" id="sick_leave_used">
+            </div>
+            <div class="col-md-2">
+            <label>วันลาป่วยคงเหลือ:</label>
+            <input type="text" name="sick_leave_remaining" value="{{ profile.sick_leave_remaining }}" class="form-control" id="sick_leave_remaining" readonly>
+            </div>
+        </div>
+        <div class="row mb-2">
+            <div class="col-md-2">
+                <label>วันลาพักร้อนทั้งหมด:</label>
+                <input type="text" name="vacation_leave_total" value="{{ profile.vacation_leave_total }}" class="form-control">
+            </div>
+            <div class="col-md-2">
+                <label>วันลาพักร้อนที่ใช้ไป:</label>
+                <input type="text" name="vacation_leave_used" value="{{ profile.vacation_leave_used }}" class="form-control">
+            </div>
+            <div class="col-md-2">
+                <label>วันลาพักร้อนคงเหลือ:</label>
+                <input type="text" name="vacation_leave_remaining" value="{{ profile.vacation_leave_remaining }}" class="form-control" readonly>
+            </div>
+        </div>
+        <div class="row mb-2">
+            <div class="col-md-2">
+                <label>วันลากิจทั้งหมด:</label>
+                <input type="text" name="absence_leave_total" value="{{ profile.absence_leave_total }}" class="form-control">
+            </div>
+            <div class="col-md-2">
+                <label>วันลากิจที่ใช้ไป:</label>
+                <input type="text" name="absence_leave_used" value="{{ profile.absence_leave_used }}" class="form-control">
+            </div>
+            <div class="col-md-2">
+                <label>วันลากิจคงเหลือ:</label>
+                <input type="text" name="absence_leave_remaining" value="{{ profile.absence_leave_remaining }}" class="form-control" readonly>
+            </div>
+        </div>
+        
+        <div class="mb-2">
+            <label for="groupSelect" class="form-label">User Group</label>
+            <select name="user_group" id="groupSelect" class="form-select">
+                <option value="leaveAdmin" {% if "leaveAdmin" in user_groups %}selected{% endif %}>Leave Admin</option>
+                <option value="leaveUser" {% if "leaveUser" in user_groups %}selected{% endif %}>Leave User</option>
+            </select>
+        </div>
+        <div class="form-check mb-2">
+            <input type="checkbox" name="is_active" class="form-check-input" {% if user_obj.is_active %}checked{% endif %}>
+            <label class="form-check-label">Is Active</label>
+        </div>
+        
+        <button type="submit" class="btn btn-success">Save</button>
+        <a href="{% url 'user_management' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+<script>
+    function updateSickLeaveRemaining() {
+        const total = parseFloat(document.getElementById('sick_leave_total').value) || 0;
+        const used = parseFloat(document.getElementById('sick_leave_used').value) || 0;
+        document.getElementById('sick_leave_remaining').value = (total - used >= 0 ? total - used : 0);
+    }
+    document.getElementById('sick_leave_total').addEventListener('input', updateSickLeaveRemaining);
+    document.getElementById('sick_leave_used').addEventListener('input', updateSickLeaveRemaining);
+
+    // Vacation leave calculation
+    function updateVacationLeaveRemaining() {
+        const total = parseFloat(document.getElementsByName('vacation_leave_total')[0].value) || 0;
+        const used = parseFloat(document.getElementsByName('vacation_leave_used')[0].value) || 0;
+        document.getElementsByName('vacation_leave_remaining')[0].value = (total - used >= 0 ? total - used : 0);
+    }
+    document.getElementsByName('vacation_leave_total')[0].addEventListener('input', updateVacationLeaveRemaining);
+    document.getElementsByName('vacation_leave_used')[0].addEventListener('input', updateVacationLeaveRemaining);
+
+    // Absence leave calculation
+    function updateAbsenceLeaveRemaining() {
+        const total = parseFloat(document.getElementsByName('absence_leave_total')[0].value) || 0;
+        const used = parseFloat(document.getElementsByName('absence_leave_used')[0].value) || 0;
+        document.getElementsByName('absence_leave_remaining')[0].value = (total - used >= 0 ? total - used : 0);
+    }
+    document.getElementsByName('absence_leave_total')[0].addEventListener('input', updateAbsenceLeaveRemaining);
+    document.getElementsByName('absence_leave_used')[0].addEventListener('input', updateAbsenceLeaveRemaining);
+</script>
+{% endblock %}

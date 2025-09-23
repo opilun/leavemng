@@ -1,0 +1,44 @@
+<!-- filepath: /Users/opilun/Coding/django/leavemng/templates/leaveapp/approve_form.html -->
+{% extends 'leaveapp/layout.html' %}
+{% block content %}
+<div class="container pt-5 pb-5">
+    <h2 class="mb-4">Approve Leave Request</h2>
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label class="form-label">ชื่อ</label>
+            <input type="text" class="form-control" value="{{ leave.name }}" readonly>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">วันที่ลา</label>
+            <input type="text" class="form-control" value="{{ leave.leave_date_from }}" readonly>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">ถึงวันที่</label>
+            <input type="text" class="form-control" value="{{ leave.leave_date_to }}" readonly>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">จำนวนวันลา</label>
+            <input type="text" class="form-control" value="{{ leave.leave_days_count }}" readonly>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">เหตุผลการลา</label>
+            <textarea class="form-control" rows="2" readonly>{{ leave.reason }}</textarea>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">สถานะ</label>
+            <select name="status" class="form-select" required>
+                <option value="รอดำเนินการ" {% if leave.status == "รอดำเนินการ" %}selected{% endif %}>รอดำเนินการ</option>
+                <option value="อนุมัติ" {% if leave.status == "อนุมัติ" %}selected{% endif %}>อนุมัติ</option>
+                <option value="ไม่อนุมัติ" {% if leave.status == "ไม่อนุมัติ" %}selected{% endif %}>ไม่อนุมัติ</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">หมายเหตุ (ถ้ามี)</label>
+            <textarea name="remarks" class="form-control" rows="2">{{ leave.remarks }}</textarea>
+        </div>
+        <button type="submit" class="btn btn-success">บันทึกการอนุมัติ</button>
+        <a href="{% url 'approve_leave' %}" class="btn btn-secondary">ยกเลิก</a>
+    </form>
+</div>
+{% endblock %}

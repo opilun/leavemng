@@ -1,14 +1,13 @@
 {% extends 'leaveapp/layout.html' %}
 
 {% block content %}
-
-
-    <div class="container pb-5">
-        <div class="row">
-            <h2 class="mt-5">ยินดีต้อนรับ {{ profile.user.first_name }} {{ profile.user.last_name }}</h2>
-            <!-- ตารางสิทธิวันลา -->
-            <div class="mb-4 mt-3">
-                <h5>สิทธิวันลาประจำปี</h5>
+<div class="container pb-5">
+    <div class="row">
+        <h2 class="mt-5">ยินดีต้อนรับ {{ profile.user.first_name }} {{ profile.user.last_name }}</h2>
+        <!-- ตารางสิทธิวันลา -->
+        <div class="mb-4 mt-3">
+            <h5>สิทธิวันลาประจำปี</h5>
+            <div class="table-responsive">
                 <table class="table table-bordered w-auto">
                     <thead class="table-secondary">
                         <tr>
@@ -41,9 +40,11 @@
                 </table>
             </div>
         </div>
-        <!-- Leave history section -->
-        <div class="container mt-3">
-            <h5 class="mb-2">ประวัติการลา</h5>
+    </div>
+    <!-- Leave history section -->
+    <div class="container mt-3">
+        <h5 class="mb-2">ประวัติการลา</h5>
+        <div class="table-responsive">
             <table class="table table-bordered table-striped">
                 <thead class="table-primary">
                     <tr>
@@ -98,4 +99,5 @@
                 </tbody>
             </table>
         </div>
-        {% endblock %}
+    </div>
+{% endblock %}
